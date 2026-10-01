@@ -1,13 +1,37 @@
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum LoginRole {
     Admin,
     User,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum LoginAction {
     Granted(LoginRole),
     Denied,
+}
+
+pub struct User {
+    pub username: String,
+    pub password: String,
+    pub role: LoginRole,
+}
+
+impl User {
+    pub fn new(username: &str, password: &str, role: LoginRole) -> Self {
+        Self {
+            username: username.to_lowercase(),
+            password: password.to_string(),
+            role,
+        }
+    }
+}
+
+pub fn get_users() -> Vec<User> {
+    let admin_user = User::new("admin", "password", LoginRole::Admin);
+    let reg_user = User::new("bob", "password", LoginRole::User);
+    let users = vec![admin_user, reg_user];
+
+    users
 }
 
 pub fn greet_user(name: &str) -> String {
@@ -15,18 +39,17 @@ pub fn greet_user(name: &str) -> String {
 }
 
 pub fn login(username: &str, password: &str) -> Option<LoginAction> {
+    let users = get_users();
     let username = username.to_lowercase();
 
-    if username != "admin" || username != "bob" {
-        return None;
-    }
-
-    if username == "admin" && password == "password" {
-        Some(LoginAction::Granted(LoginRole::Admin))
-    } else if username == "bob" && password == "password" {
-        Some(LoginAction::Granted(LoginRole::User))
+    if let Some(user) = users.iter().find(|user| user.username == username) {
+        if user.password == password {
+            return Some(LoginAction::Granted(user.role.clone()));
+        } else {
+            return Some(LoginAction::Denied);
+        }
     } else {
-        Some(LoginAction::Denied)
+        None
     }
 }
 
