@@ -11,21 +11,25 @@ fn main() {
         let password = read_line();
 
         match login(&username, &password) {
-            LoginAction::Granted(LoginRole::Admin) => {
+            Some(LoginAction::Granted(LoginRole::Admin)) => {
                 println!("Welcome {username}, you are an admin");
                 break;
             }
-            LoginAction::Granted(LoginRole::User) => {
+            Some(LoginAction::Granted(LoginRole::User)) => {
                 println!("Welcome {username}, you are a user");
                 break;
             }
-            LoginAction::Denied => {
+            Some(LoginAction::Denied) => {
                 println!("Login failed.");
                 tries += 1;
                 if tries >= 3 {
                     println!("Too many failed login attempts");
                     break;
                 }
+            }
+            None => {
+                println!("New user!");
+                break;
             }
         }
     }
