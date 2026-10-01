@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum LoginRole {
     Admin,
@@ -10,6 +12,7 @@ pub enum LoginAction {
     Denied,
 }
 
+#[derive(Debug, Clone)]
 pub struct User {
     pub username: String,
     pub password: String,
@@ -34,12 +37,25 @@ pub fn get_users() -> Vec<User> {
     users
 }
 
+pub fn get_users_map -> HashMap<String, User> {
+    let admin_user = User::new("admin", "password", LoginRole::Admin);
+    let reg_user = User::new("bob", "password", LoginRole::User);
+    let mut users = HashMap::new();
+
+    users.insert("admin".to_string(), admin_user);
+    users.insert("bob".to_string(), reg_user);
+
+    users
+}
+
 pub fn greet_user(name: &str) -> String {
     format!("Hello {name}")
 }
 
 pub fn login(username: &str, password: &str) -> Option<LoginAction> {
     let users = get_users();
+    #[allow(unused)]
+    let user_map = get_users_map();
     let username = username.to_lowercase();
 
     if let Some(user) = users.iter().find(|user| user.username == username) {
@@ -49,7 +65,18 @@ pub fn login(username: &str, password: &str) -> Option<LoginAction> {
             return Some(LoginAction::Denied);
         }
     } else {
-        None
+        return None;
+    }
+
+    #[allow(unused)]
+    if let Some(user) = user_map.get(&username) {
+        if user.password == password {
+            return Some(LoginAction::Granted(user.role.clone()));
+        } else {
+            return Some(LoginAction::Denied);
+        }
+    } else {
+        return None;
     }
 }
 
