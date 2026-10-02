@@ -1,5 +1,9 @@
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs, path::Path};
+use std::{
+    collections::HashMap,
+    fs::{self, read_to_string},
+    path::Path,
+};
 
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum LoginRole {
@@ -47,6 +51,22 @@ pub fn get_users_map() -> HashMap<String, User> {
     users.insert("bob".to_string(), reg_user);
 
     users
+}
+
+pub fn save_users(users: HashMap<String, User>) {
+    let users_path = Path::new("users.json");
+    let users_json = serde_json::to_string(&users).unwrap();
+
+    fs::write(users_path, users_json).unwrap();
+}
+
+pub fn delete_user(username: String) {
+    let users_path = Path::new("users.json");
+    let users_json = read_to_string(users_path).unwrap();
+    let mut users: HashMap<String, User> = serde_json::from_str(&users_json).unwrap();
+
+    users.remove(&username).unwrap();
+    save_users(users);
 }
 
 pub fn get_users_or_create_json() -> HashMap<String, User> {
