@@ -24,7 +24,7 @@ impl User {
     pub fn new(username: &str, password: &str, role: LoginRole) -> Self {
         Self {
             username: username.to_lowercase(),
-            password: password.to_string(),
+            password: hash_password(password),
             role,
         }
     }
@@ -66,6 +66,17 @@ pub fn get_users_or_create_json() -> HashMap<String, User> {
     }
 }
 
+pub fn hash_password(password: &str) -> String {
+    use sha2::Digest;
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(password);
+    hasher
+        .finalize()
+        .iter()
+        .map(|byte| format!("{byte:02X}")) // each byte → 2 hex digits; 02 keeps the leading zero
+        .collect() // into String: the return type is the destination
+}
+
 pub fn greet_user(name: &str) -> String {
     format!("Hello {name}")
 }
@@ -75,6 +86,7 @@ pub fn login(username: &str, password: &str) -> Option<LoginAction> {
     #[allow(unused)]
     let user_map = get_users_or_create_json();
     let username = username.to_lowercase();
+    let password = hash_password(password);
 
     if let Some(user) = users.iter().find(|user| user.username == username) {
         if user.password == password {
