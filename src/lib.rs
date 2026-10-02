@@ -1,18 +1,19 @@
-use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, fs, path::Path};
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum LoginRole {
     Admin,
     User,
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum LoginAction {
     Granted(LoginRole),
     Denied,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub username: String,
     pub password: String,
@@ -37,7 +38,7 @@ pub fn get_users() -> Vec<User> {
     users
 }
 
-pub fn get_users_map -> HashMap<String, User> {
+pub fn get_users_map() -> HashMap<String, User> {
     let admin_user = User::new("admin", "password", LoginRole::Admin);
     let reg_user = User::new("bob", "password", LoginRole::User);
     let mut users = HashMap::new();
@@ -48,6 +49,23 @@ pub fn get_users_map -> HashMap<String, User> {
     users
 }
 
+pub fn get_users_or_create_json() -> HashMap<String, User> {
+    let users_path = Path::new("users.json");
+
+    if users_path.exists() {
+        let users_json = fs::read_to_string(users_path).unwrap();
+        let users: HashMap<String, User> = serde_json::from_str(&users_json).unwrap();
+
+        users
+    } else {
+        let users = get_users_map();
+        let users_json = serde_json::to_string(&users).unwrap();
+        fs::write(users_path, users_json).unwrap();
+
+        users
+    }
+}
+
 pub fn greet_user(name: &str) -> String {
     format!("Hello {name}")
 }
@@ -55,7 +73,7 @@ pub fn greet_user(name: &str) -> String {
 pub fn login(username: &str, password: &str) -> Option<LoginAction> {
     let users = get_users();
     #[allow(unused)]
-    let user_map = get_users_map();
+    let user_map = get_users_or_create_json();
     let username = username.to_lowercase();
 
     if let Some(user) = users.iter().find(|user| user.username == username) {
@@ -99,9 +117,16 @@ mod tests {
         assert_eq!(result, "Hello Tim".to_string());
     }
 
+    #[test]
     fn test_login() {
-        assert_eq!(login("admin", "password"), LoginAction::Admin);
-        assert_eq!(login("bob", "password"), LoginAction::User);
-        assert_eq!(login("admin", "not-password"), LoginAction::Denied);
+        assert_eq!(
+            login("admin", "password"),
+            Some(LoginAction::Granted(LoginRole::Admin))
+        );
+        assert_eq!(
+            login("bob", "password"),
+            Some(LoginAction::Granted(LoginRole::User))
+        );
+        assert_eq!(login("admin", "not-password"), Some(LoginAction::Denied));
     }
 }
