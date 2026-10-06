@@ -4,29 +4,27 @@ use std::{sync::mpsc, thread};
 // makes code more readable
 type Job = Box<dyn FnOnce() + Send + 'static>;
 
-fn hi_there() {
-    println!("Hi there!");
+enum Command {
+    Run(Job),
+    Quit,
 }
 
 fn main() {
-    let (tx, rx) = mpsc::channel::<Job>();
+    let (tx, rx) = mpsc::channel::<Command>();
     let handle = thread::spawn(move || {
-        while let Ok(job) = rx.recv() {
-            job();
+        while let Ok(command) = rx.recv() {
+            match command {
+                Command::Run(job) => job(),
+                Command::Quit => {
+                    println!("Quitting....");
+                    break;
+                }
+            }
         }
     });
 
-    let job = || println!("Hello from a closure");
-    let job2 = || {
-        for i in 0..10 {
-            println!("{i}");
-        }
-    };
-
-    tx.send(Box::new(job)).unwrap();
-    tx.send(Box::new(job2)).unwrap();
-    tx.send(Box::new(hi_there)).unwrap();
-    tx.send(Box::new(|| println!("I'm in a Box"))).unwrap();
-
+    tx.send(Command::Run(Box::new(|| println!("I am in a Box"))))
+        .unwrap();
+    tx.send(Command::Quit).unwrap();
     handle.join().unwrap();
 }
