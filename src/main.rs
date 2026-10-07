@@ -9,5 +9,5 @@ fn main() {
         scope.spawn_broadcast(|_scope, broadcast_context| {
             println!("Hello from broadcast thread {}", broadcast_context.index());
         });
-    })
+    });
 }
