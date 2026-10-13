@@ -1,7 +1,19 @@
 use tokio::runtime;
 
-async fn hello() {
+async fn hello() -> u32 {
     println!("Hello Tokio");
+    6
+}
+
+async fn hello2() -> u32 {
+    println!("Hello Tokio AGAIN");
+    7
+}
+
+async fn ticker() {
+    for i in 0..10 {
+        println!("TICK: {i}");
+    }
 }
 
 // Long way of setting up tokio
@@ -27,5 +39,19 @@ async fn hello() {
 // For minute customization a mix and match approach OR the long form approach is the best
 #[tokio::main]
 async fn main() {
-    hello().await;
+    // hello().await;
+
+    // let (hello_1, hello_2) = tokio::join!(hello(), hello2());
+    // println!("{hello_1}, {hello_2}");
+
+    // tokio::spawn(ticker());
+    // hello().await;
+
+    let _ = tokio::join!(
+        tokio::spawn(ticker()),
+        tokio::spawn(hello()),
+        tokio::spawn(ticker())
+    );
 }
+
+// asynch rus cooperatively! So the results are not interleaved (only true for single threaded flavor = current_thread)
