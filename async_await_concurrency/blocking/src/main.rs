@@ -1,33 +1,24 @@
-use std::{thread, time::Duration};
+use std::time::Duration;
 
 async fn hello_delay(task: u64, time: u64) {
     println!("Task {task} has started");
-    thread::sleep(Duration::from_millis(time)); // makes the whole tokio runtime go to sleep (if current_thread enabled OR if numBlockingTasks > numThreads); Block OS thread!
+    tokio::time::sleep(Duration::from_millis(time)).await; // this future waits; the thread stays free
+    //thread::sleep(Duration::from_millis(time));
     println!("Task {task} has finished");
 }
-// expected output:
+
+// Observe, output looks like a multithreaded, parallely executed, output
+// however, it is concurrent not parallel.
+// Output:
 // Task 1 has started
 // Task 2 has started
 // Task 3 has started
 // Task 1 has finished
 // Task 2 has finished
 // Task 3 has finished
-
-// Actual output with thread::sleep()
-// Task 1 has started
-// Task 1 has finished
-// Task 2 has started
-// Task 2 has finished
-// Task 3 has started
-// Task 3 has finished
-
-// Tokio cooperatively multitasks and not pre-emptively multitask
 
 #[tokio::main]
 async fn main() {
-    // join! without spawn runs all three futures inside one task
-    // and a task runs on one thread at a time. When that thread hits thread::sleep,
-    // everything in the task stops, while the other workers have nothing to pick up.
     tokio::join!(
         hello_delay(1, 500),
         hello_delay(2, 1000),
@@ -35,7 +26,8 @@ async fn main() {
     );
 }
 
-// What to take away:
-// - thread::sleep blocks the OS thread; tokio::time::sleep(...).await pauses only the task.
-// - Within one task, futures take turns only at .await.
-// - In async code, never block a thread. For blocking work you can't avoid, use tokio::task::spawn_blocking, which runs it on a separate thread pool meant for blocking work.
+// all three hello_delay calls are futures inside one task, because of join!. So:
+// - sleep(...).await pauses that future and hands control back to join!.
+// - join! moves on and runs the next future, until it too reaches its sleep.
+// - Once all three are waiting, the task pauses and the thread is free for other work.
+// - When a timer fires, the runtime wakes the task, and join! resumes the future whose timer it was.
