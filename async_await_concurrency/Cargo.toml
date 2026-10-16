@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["blocking", "handling_errors", "hello_async", "hello_tokio", "testing_tokio"]
+members = ["blocking", "file_io_asyn", "handling_errors", "hello_async", "hello_tokio", "testing_tokio"]
 
 [workspace.dependencies]
 tokio = { version = "1.53.2", features = ["full"] }

@@ -1,0 +1,8 @@
+[package]
+name = "file_io_asyn"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.104"
+tokio = { workspace = true }
