@@ -8,7 +8,7 @@ members = [
   "hello_async",
   "hello_tokio",
   "rest_client", "sharing_state",
-  "testing_tokio",
+  "testing_tokio", "tokio_select",
 ]
 
 [workspace.dependencies]
