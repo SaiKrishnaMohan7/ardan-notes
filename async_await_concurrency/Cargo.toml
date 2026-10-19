@@ -7,7 +7,7 @@ members = [
   "handling_errors",
   "hello_async",
   "hello_tokio",
-  "rest_client",
+  "rest_client", "sharing_state",
   "testing_tokio",
 ]
 
