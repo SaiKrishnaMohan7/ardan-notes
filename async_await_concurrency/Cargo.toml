@@ -1,6 +1,18 @@
 [workspace]
 resolver = "3"
-members = ["blocking", "file_io_asyn", "handling_errors", "hello_async", "hello_tokio", "rest_client", "testing_tokio"]
+members = [
+  "async_channels",
+  "blocking",
+  "file_io_asyn",
+  "handling_errors",
+  "hello_async",
+  "hello_tokio",
+  "rest_client",
+  "testing_tokio",
+]
 
 [workspace.dependencies]
 tokio = { version = "1.53.2", features = ["full"] }
+anyhow = "1.0.104"
+reqwest = { version = "0.13.5", features = ["json"] }
+serde = { version = "1.0.229", features = ["derive"] }
