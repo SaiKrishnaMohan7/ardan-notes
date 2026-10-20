@@ -1,5 +1,11 @@
-use sqlx::{Pool, Row, Sqlite};
+use sqlx::{FromRow, Pool, Row, Sqlite};
 use tracing::{info, subscriber::set_global_default};
+
+#[derive(Debug, FromRow)]
+struct Message {
+    id: i64,
+    message: String,
+}
 
 async fn setup_logging() -> anyhow::Result<()> {
     let subscriber = tracing_subscriber::fmt()
@@ -24,20 +30,22 @@ async fn main() -> anyhow::Result<()> {
     let db_url = std::env::var("DATABASE_URL")?;
     let pool = setup_db_pool(&db_url).await?;
 
-    let messages = sqlx::query("SELECT id, message FROM messages")
-        .map(|row: sqlx::sqlite::SqliteRow| {
-            let id: i64 = row.get(0);
-            let message: String = row.get(1);
-            (id, message)
-        })
+    // let messages = sqlx::query("SELECT id, message FROM messages")
+    //     .map(|row: sqlx::sqlite::SqliteRow| {
+    //         let id: i64 = row.get(0);
+    //         let message: String = row.get(1);
+    //         (id, message)
+    //     })
+    //     .fetch_all(&pool)
+    //     .await?;
+
+    let messages = sqlx::query_as::<_, Message>("SELECT id, message FROM messages")
         .fetch_all(&pool)
         .await?;
 
     info!("DB chat supz/");
 
-    for (id, message) in messages {
-        println!("{id}: {message}")
-    }
+    println!("{messages:?}");
 
     Ok(())
 }
