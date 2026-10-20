@@ -1,4 +1,5 @@
-use sqlx::{FromRow, Pool, Row, Sqlite};
+use futures::TryStreamExt;
+use sqlx::{FromRow, Pool, Sqlite};
 use tracing::{info, subscriber::set_global_default};
 
 #[derive(Debug, FromRow)]
@@ -45,7 +46,17 @@ async fn main() -> anyhow::Result<()> {
 
     info!("DB chat supz/");
 
-    println!("{messages:?}");
+    println!("{:?} {:?}", messages[0].id, messages[0].message);
+
+    let mut message_stream =
+        sqlx::query_as::<_, Message>("SELECT id, message FROM messages").fetch(&pool);
+
+    while let Some(message) = message_stream.try_next().await? {
+        println!(
+            "Look ma, I am Streaming: {:?} {:?}",
+            message.id, message.message
+        )
+    }
 
     Ok(())
 }
