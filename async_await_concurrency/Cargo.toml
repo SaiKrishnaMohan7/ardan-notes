@@ -7,8 +7,13 @@ members = [
   "handling_errors",
   "hello_async",
   "hello_tokio",
-  "rest_client", "sharing_state",
-  "testing_tokio", "thumbnail_server", "tokio_db", "tokio_select", "tokio_tracing",
+  "rest_client",
+  "sharing_state",
+  "testing_tokio",
+  "thumbnail_server",
+  "tokio_db",
+  "tokio_select",
+  "tokio_tracing",
 ]
 
 [workspace.dependencies]
